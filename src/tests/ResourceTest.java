@@ -3,6 +3,7 @@ package tests;
 import java.math.BigInteger;
 
 import logic.buildings.Building;
+import logic.buildings.LivingQuarters;
 
 
 public class ResourceTest {
@@ -11,7 +12,7 @@ public class ResourceTest {
 	
 	public static void main (String[] args)
 	{
-		Building b = new Building("Test Building",30,30);
+		Building b = new LivingQuarters("Test Building");
 		BigInteger amount = BigInteger.ZERO;
 		
 		b.registerResource("testResource");

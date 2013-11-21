@@ -6,13 +6,18 @@ import java.util.Iterator;
 import java.util.Set;
 
 import logic.buildings.Building;
-import logic.buildings.PowerPlant;
 
 import org.jgrapht.UndirectedGraph;
 import org.jgrapht.alg.ConnectivityInspector;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.SimpleGraph;
 
+/**
+ * defines a network of buildings - essentially, a map of the colony's construction.
+ * Handles all the important building-to-building stuff - what's next to what, where you
+ * can build, what's connected to what. 
+ * @author Mikael Suominen
+ */
 public class Network {
 
 	protected Building[][] buildingGrid = null; //grid for fitting stuff in and determining what is adjacent to what, buildings may be in multiple squares
@@ -23,6 +28,12 @@ public class Network {
 	protected UndirectedGraph<Building,DefaultEdge> buildingGraph; //building graph for determining connections (for delivering resources)
 	protected ConnectivityInspector<Building,DefaultEdge> ci;
 	
+	/**
+	 * Creates a new network with a given size in units. Not related to screen
+	 * size directly, though early versions have a 1 unit = 10 pixels correlation
+	 * @param x		Width of the network in units
+	 * @param y		Height of the network in units
+	 */
 	public Network(int x, int y)
 	{
 		//Initialise the list and graph of buildings
@@ -39,6 +50,14 @@ public class Network {
 				this.buildingGrid[ix][iy] = null;
 	}
 	
+	/**
+	 * Attempts to add a Building at co-ordinates (x,y). If successful, adds the building
+	 * onto the grid and into the list and graph. If not, returns false.
+	 * @param b The building to add
+	 * @param x x coordinate to attempt to place b
+	 * @param y y coordinate to attempt to place b
+	 * @return true on successful add, false otherwise. No other info yet.
+	 */
 	public boolean addBuilding(Building b, int x, int y)
 	{
 		//Check we're within bounds
@@ -93,28 +112,64 @@ public class Network {
 		return true;
 	}
 	
+	/**
+	 * Gets an iterator over all the buildings in the network. Primarily used by
+	 * the logic loop to get every building producing, consuming and storing. 
+	 * @return this.buildings.iterator();
+	 */
 	public Iterator<Building> getBuildingsIterator()
 	{
 		return this.buildings.iterator();
 	}
 	
+	/**
+	 * Pulls a building out of the network, killing its connections to all other
+	 * buildings.
+	 * @param b the building to remove.
+	 */
 	public void removeBuilding(Building b)
 	{
 		this.buildings.remove(b);
 		this.buildingGraph.removeVertex(b);
+		for(int i=0;i<this.gridXMax;i++)
+			for(int j=0;j<this.gridYMax;j++)
+				if(this.buildingGrid[i][j] == b)
+					this.buildingGrid[i][j] = null;
 	}
 	
+	/**
+	 * Adds an adjacency between b1 and b2. Usually used by the network itself to 
+	 * tell the graph what building is next to what, but could be used by other 
+	 * buildings to add strange adjacencies - such as for a helipad or portal.
+	 * @param b1
+	 * @param b2
+	 */
 	public void addAdjacency(Building b1, Building b2)
 	{
 		this.buildingGraph.addEdge(b1, b2);
 	}
 	
+	/**
+	 * determines whether two buildings are adjacent to each other from the network's
+	 * point of view. 
+	 * @param b1
+	 * @param b2
+	 * @return true if they are adjacent, or false if not.
+	 */
 	//Are these two buildings adjacent to each other?
 	public boolean areAdjacent(Building b1, Building b2)
 	{
 		return this.buildingGraph.containsEdge(b1, b2);
 	}
 	
+	/**
+	 * determines whether two buildings are connected to each other from the network's
+	 * point of view - that is, if an unblocked path can be traced from b1 to b2 
+	 * through adjacent buildings.
+	 * @param b1
+	 * @param b2
+	 * @return true if they are conected, or false if not.
+	 */
 	//Are these two buildings connected by a chain of adjacent buildings?
 	public boolean areConnected(Building b1, Building b2)
 	{
@@ -123,6 +178,12 @@ public class Network {
 		return false;
 	}
 	
+	/**
+	 * Gets all the buildings connected to b1 by an unbroken chain of adjacent buildings.
+	 * Regularly used for a building to check all the buildings it can draw resources from.
+	 * @param b1	the building to grab connected buildings for
+	 * @return		a Set of Building objects connected to b1
+	 */
 	public Set<Building> connectedBuildings(Building b1)
 	{
 		return this.ci.connectedSetOf(b1);
@@ -133,12 +194,23 @@ public class Network {
 		System.out.println(this.buildingGraph.toString());
 	}
 	
+	/**
+	 * Attempts to consume a generic resource (resName) from all buildings connected to 
+	 * a specific building (target) - used for example to take from any available power_pool
+	 * sources. Order it will hit buildings is undefined; if order is important, craft a
+	 * more specific version of this function.
+	 * @param amount	The amount of resource to attempt to draw
+	 * @param resName	The name (e.g. "power_pool") of the resource to draw from
+	 * @param target	The building drawing the resource - all sources must be connected to
+	 * this building.
+	 * @return			The amount of resource successfully drawn.
+	 */
 	public BigInteger consumeFromNetwork(BigInteger amount, String resName, Building target)
 	{
 		BigInteger toConsume = amount.add(BigInteger.ZERO);
 		BigInteger consumed = BigInteger.ZERO;
 		
-		//go through our network trying to find power_pool, then take from it
+		//go through our network trying to find resName, then take from it
 		Set<Building> connected = this.connectedBuildings(target);
 		Iterator<Building> it = connected.iterator();
 		while(it.hasNext())
@@ -153,72 +225,5 @@ public class Network {
 		consumed = amount.subtract(toConsume);
 		
 		return consumed;
-	}
-	
-	public static void main(String[] args)
-	{
-		Network n = new Network(400,400);
-		boolean test = false;
-		Building b = null;
-		Building pp1 = null;
-		Building pp4 = null;
-		Building c2 = null;
-		Building c3 = null;
-		
-		//create a power plant [10x10]
-		b = new PowerPlant("pp1");
-		pp1 = b;
-		test = n.addBuilding(b, -1, -1); //at (-1,-1) - should fail!
-		System.out.println("Attempted to add "+b+" at (-1,-1): "+test);
-		n._debugPrintGraph();
-		test = n.addBuilding(b, 0, 0); //at (0,0) - should succeed
-		System.out.println("Attempted to add "+b+" at (0,0): "+test);
-		n._debugPrintGraph();
-		
-		//create another power plant [10x10]
-		b = new PowerPlant("pp2");
-		test = n.addBuilding(b, 9, 9); //at (9,9) - should fail, space already taken up by pp1
-		System.out.println("Attempted to add "+b+" at (9,9): "+test);
-		n._debugPrintGraph();
-		test = n.addBuilding(b, 10, 0); //at (10,0) - should succeed and add an edge
-		System.out.println("Attempted to add "+b+" at (10,0): "+test);
-		n._debugPrintGraph();
-		
-		//create a custom [5x5] to add below the power plant
-		b = new Building("c1",5,5);
-		test = n.addBuilding(b, 0, 10); //at (0,10) - should succeed and add an edge
-		System.out.println("Attempted to add "+b+" at (0,10): "+test);
-		n._debugPrintGraph();
-		//create a custom [5x5] to add below the power plant
-		b = new Building("c2",5,5);
-		c2 = b;
-		test = n.addBuilding(b, 5, 10); //at (5,10) - should succeed and add edges to pp1 and c1
-		System.out.println("Attempted to add "+b+" at (5,10): "+test);
-		n._debugPrintGraph();
-		
-		//create another power plant [10x10]
-		b = new PowerPlant("pp3");
-		test = n.addBuilding(b, 0, 15); //at (0,15) - should succeed and add edges to c1 and c2
-		System.out.println("Attempted to add "+b+" at (0,15): "+test);
-		n._debugPrintGraph();
-		
-		//create another power plant [10x10]
-		b = new PowerPlant("pp4");
-		pp4 = b;
-		test = n.addBuilding(b, 10, 10); //at (10,10) - should succeed and add edges to pp2, c2 and pp3
-		System.out.println("Attempted to add "+b+" at (10,10): "+test);
-		n._debugPrintGraph();
-		
-		//create a custom [5x5] to add out of the way
-		b = new Building("c3",5,5);
-		c3 = b;
-		test = n.addBuilding(b,40,40); //at (40,40) - should succeed and add no edges
-		System.out.println("Attempted to add "+b+" at (40,40): "+test);
-		n._debugPrintGraph();
-		
-		//A couple more tests: pp1 and pp4 should be connected but not adjacent:
-		System.out.println("pp1 and pp4 are adjacent: "+n.areAdjacent(pp1, pp4)+", pp1 and pp4 are connected: "+n.areConnected(pp1, pp4));
-		System.out.println("c2 and pp4 are adjacent: "+n.areAdjacent(c2, pp4)+", c2 and pp4 are connected: "+n.areConnected(c2, pp4));
-		System.out.println("c3 and pp4 are adjacent: "+n.areAdjacent(c3, pp4)+", c3 and pp4 are connected: "+n.areConnected(c3, pp4));
 	}
 }

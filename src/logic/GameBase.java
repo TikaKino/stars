@@ -37,8 +37,6 @@ public class GameBase extends BasicGame implements InputProviderListener {
 		this.network.addBuilding(new PowerPlant("Plant"),0,3);
 		this.network.addBuilding(new LifeSupport("LS1"), 0, 13);
 		this.network.addBuilding(new LifeSupport("LS2"), 5, 13);
-		//this.network.addBuilding(new LifeSupport("LS3"), 10, 13);
-		//this.network.addBuilding(new LifeSupport("LS4"), 15, 13);
 		this.network.addBuilding(new LivingQuarters("LQ1"), 0, 18);
 	}
 
