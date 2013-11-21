@@ -11,7 +11,7 @@ public class LifeSupport extends PowerConsumingBuilding {
 	
 	public LifeSupport(String name)
 	{
-		super(name,5,5,new BigInteger("10"));
+		super(name,"life_support",5,5,new BigInteger("10"));
 		
 		this.registerResource("life_support");
 		this.supportCapacity = 500;

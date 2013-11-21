@@ -19,7 +19,7 @@ public class LivingQuarters extends PowerConsumingBuilding {
 	
 	public LivingQuarters(String name)
 	{
-		super(name,10,10,new BigInteger("5"));
+		super(name,"living_quarters",10,10,new BigInteger("5"));
 		
 		this.population = 1;
 		this.populationMax = 100;

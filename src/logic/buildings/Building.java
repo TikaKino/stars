@@ -16,6 +16,7 @@ import org.newdawn.slick.Graphics;
 public abstract class Building {
 
 	protected String buildingName;
+	protected String buildingType;
 	
 	protected int posX = 0;
 	protected int posY = 0;
@@ -27,12 +28,13 @@ public abstract class Building {
 	
 	protected Network network;
 	
-	public Building(String name, int width, int height)
+	public Building(String name, String type, int width, int height)
 	{
 		this.resourcePools = new HashMap<String,BigInteger>(20);
 		this.network = null;
 		
 		this.buildingName = name;
+		this.buildingType = type;
 		this.setSize(width,height);
 	}
 	
@@ -270,7 +272,7 @@ public abstract class Building {
 	 */
 	public String toString()
 	{
-		return this.buildingName;
+		return this.buildingType+": "+this.buildingName;
 	}
 	
 	/**

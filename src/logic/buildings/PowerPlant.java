@@ -12,7 +12,7 @@ public class PowerPlant extends Building {
 	
 	public PowerPlant(String name)
 	{
-		super(name,10,10);
+		super(name,"power_plant",10,10);
 		this.registerResource("power_pool");
 		this.registerResource("power_store");
 		this.powerpertick = new BigInteger("30");

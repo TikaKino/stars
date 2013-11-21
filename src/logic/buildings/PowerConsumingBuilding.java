@@ -8,9 +8,9 @@ public class PowerConsumingBuilding extends Building {
 	protected BigInteger powerPerTick;
 	protected boolean powered;
 	
-	public PowerConsumingBuilding(String name, int x, int y, BigInteger powerPerTick)
+	public PowerConsumingBuilding(String name, String type, int x, int y, BigInteger powerPerTick)
 	{
-		super(name,x,y);
+		super(name,type,x,y);
 		this.powerPerTick = powerPerTick;
 		this.powered = true;
 	}
