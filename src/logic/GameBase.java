@@ -1,6 +1,7 @@
 package logic;
 
 import java.util.Iterator;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -49,10 +50,10 @@ public class GameBase extends BasicGame implements InputProviderListener {
 		this.preparedBuilding = null;
 		this.buildingNumber = 1;
 		
-		this.network.addBuilding(new LivingQuarters("LQ1"), 0, 18);
+		this.network.addBuilding(new LivingQuarters("LQA"), 0, 18);
 		this.network.addBuilding(new PowerPlant("Plant"),0,3);
-		this.network.addBuilding(new LifeSupport("LS1"), 0, 13);
-		this.network.addBuilding(new LifeSupport("LS2"), 5, 13);
+		this.network.addBuilding(new LifeSupport("LSA"), 0, 13);
+		this.network.addBuilding(new LifeSupport("LSB"), 5, 13);
 		
 		this.input_state = INPUT_STATE_BASIC;
 		this.input = gc.getInput();
@@ -158,20 +159,28 @@ public class GameBase extends BasicGame implements InputProviderListener {
 		{
 			//Do click event stuff
 			//System.out.println("("+this.input.getMouseX()+","+this.input.getMouseY()+")");
+			int x = this.input.getMouseX() / 10;
+			int y = this.input.getMouseY() / 10;
 			
 			if(this.input_state == INPUT_STATE_BUILD)
 			{
-				int x = this.input.getMouseX() / 10;
-				int y = this.input.getMouseY() / 10;
 				if(this.network.addBuilding(this.preparedBuilding, x, y))
 				{
 					this.input_state = INPUT_STATE_BASIC;
 					this.preparedBuilding = null;
 				}
-				else
+			}
+			else
+			{
+				Building b = this.network.getBuildingAt(x, y);
+				if(b != null)
 				{
-					
+					System.out.println(b.toString());
+					Set<Building> connected = this.network.connectedBuildings(b);
+					System.out.println(connected.toString());
 				}
+				else
+					System.out.println("No building at ("+x+","+y+")");
 			}
 		}
 	}

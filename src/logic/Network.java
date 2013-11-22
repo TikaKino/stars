@@ -7,10 +7,9 @@ import java.util.Set;
 
 import logic.buildings.Building;
 
-import org.jgrapht.UndirectedGraph;
 import org.jgrapht.alg.ConnectivityInspector;
 import org.jgrapht.graph.DefaultEdge;
-import org.jgrapht.graph.SimpleGraph;
+import org.jgrapht.graph.ListenableUndirectedGraph;
 
 /**
  * defines a network of buildings - essentially, a map of the colony's construction.
@@ -25,7 +24,7 @@ public class Network {
 	protected int gridYMax;
 	
 	protected ArrayList<Building> buildings; //list of buildings for cycling each building once
-	protected UndirectedGraph<Building,DefaultEdge> buildingGraph; //building graph for determining connections (for delivering resources)
+	protected ListenableUndirectedGraph<Building,DefaultEdge> buildingGraph; //building graph for determining connections (for delivering resources)
 	protected ConnectivityInspector<Building,DefaultEdge> ci;
 	
 	/**
@@ -38,8 +37,9 @@ public class Network {
 	{
 		//Initialise the list and graph of buildings
 		this.buildings = new ArrayList<Building>(30);
-		this.buildingGraph = new SimpleGraph<Building,DefaultEdge>(DefaultEdge.class);
+		this.buildingGraph = new ListenableUndirectedGraph<Building,DefaultEdge>(DefaultEdge.class);
 		this.ci = new ConnectivityInspector<Building,DefaultEdge>(this.buildingGraph);
+		this.buildingGraph.addGraphListener(this.ci);
 		
 		//initialise the grid
 		this.buildingGrid = new Building[x][y];
@@ -87,29 +87,54 @@ public class Network {
 			for(int i = x; i < x + b.getWidth(); i++) //do the width of the row 
 				if(i > 0 && i < this.gridXMax && this.buildingGrid[i][y-1] != null) //check we're in bounds, see if there's an unfilled grid square
 					if(!this.buildingGraph.containsEdge(b,this.buildingGrid[i][y-1])) //see if we're already connected to what's in that grid square
+					{
 						this.buildingGraph.addEdge(b,this.buildingGrid[i][y-1]); //add an adjacency to that building
+						this.buildingGraph.addEdge(this.buildingGrid[i][y-1],b);
+					}
 		//bottom row
 		if(y + b.getHeight() < this.gridYMax) //check we're not touching the bottom
 			for(int i = x; i < x + b.getWidth(); i++) //do the width of the row
 				if(i > 0 && i < this.gridXMax && this.buildingGrid[i][y + b.getHeight()] != null) //check we're in bounds, see if there's an unfilled grid square
 					if(!this.buildingGraph.containsEdge(b,this.buildingGrid[i][y + b.getHeight()])) //see if we're already connected to what's in that grid square
+					{
 						this.buildingGraph.addEdge(b,this.buildingGrid[i][y + b.getHeight()]); //add an adjacency to that building
+						this.buildingGraph.addEdge(this.buildingGrid[i][y + b.getHeight()],b);
+					}
 		//left column
 		if(x-1 > 0) //check we're not already on the far left
 			for(int i = y; i < y + b.getHeight(); i++) // do the height of the building
 				if(i > 0 && i < this.gridYMax && this.buildingGrid[x-1][i] != null)
 					if(!this.buildingGraph.containsEdge(b,this.buildingGrid[x-1][i]))
+					{
 						this.buildingGraph.addEdge(b,this.buildingGrid[x-1][i]);
+						this.buildingGraph.addEdge(this.buildingGrid[x-1][i],b);
+					}
 		//right column
 		if(x + b.getWidth() < this.gridXMax) //check we're not already on the far right
 			for(int i = y; i < y + b.getHeight(); i++) // do the height of the building
 				if(i > 0 && i < this.gridYMax && this.buildingGrid[x + b.getWidth()][i] != null)
 					if(!this.buildingGraph.containsEdge(b,this.buildingGrid[x + b.getWidth()][i]))
+					{
 						this.buildingGraph.addEdge(b,this.buildingGrid[x + b.getWidth()][i]);
+						this.buildingGraph.addEdge(this.buildingGrid[x + b.getWidth()][i],b);
+					}
 		
 		b.setNetwork(this);
 		b.setPos(x, y);
 		return true;
+	}
+	
+	/**
+	 * Grabs the building at a given grid point, if any. Return null if there is no building there.
+	 * @param x
+	 * @param y
+	 * @return
+	 */
+	public Building getBuildingAt(int x, int y)
+	{
+		if(this.buildingGrid[x][y] != null)
+			return this.buildingGrid[x][y];
+		return null;
 	}
 	
 	/**
