@@ -2,7 +2,9 @@ package logic;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import logic.buildings.Building;
@@ -27,6 +29,8 @@ public class Network {
 	protected ListenableUndirectedGraph<Building,DefaultEdge> buildingGraph; //building graph for determining connections (for delivering resources)
 	protected ConnectivityInspector<Building,DefaultEdge> ci;
 	
+	protected HashMap<Set<Building>,ConsumptionRequests> consumptionRequests;
+	
 	/**
 	 * Creates a new network with a given size in units. Not related to screen
 	 * size directly, though early versions have a 1 unit = 10 pixels correlation
@@ -48,6 +52,8 @@ public class Network {
 		for(int ix = 0;ix<x;ix++)
 			for (int iy = 0;iy<y;iy++)
 				this.buildingGrid[ix][iy] = null;
+		
+		this.consumptionRequests = new HashMap<Set<Building>,ConsumptionRequests>();
 	}
 	
 	/**
@@ -223,14 +229,15 @@ public class Network {
 	 * Attempts to consume a generic resource (resName) from all buildings connected to 
 	 * a specific building (target) - used for example to take from any available power_pool
 	 * sources. Order it will hit buildings is undefined; if order is important, craft a
-	 * more specific version of this function.
+	 * more specific version of this function. If resource usage should be shared equally
+	 * among available producers, use requestSharedPoolConsumption() and a callback.
 	 * @param amount	The amount of resource to attempt to draw
 	 * @param resName	The name (e.g. "power_pool") of the resource to draw from
 	 * @param target	The building drawing the resource - all sources must be connected to
 	 * this building.
 	 * @return			The amount of resource successfully drawn.
 	 */
-	public BigInteger consumeFromNetwork(BigInteger amount, String resName, Building target)
+	public BigInteger consumeFromNetwork(String resName, BigInteger amount, Building target)
 	{
 		BigInteger toConsume = amount.add(BigInteger.ZERO);
 		BigInteger consumed = BigInteger.ZERO;
@@ -250,5 +257,58 @@ public class Network {
 		consumed = amount.subtract(toConsume);
 		
 		return consumed;
+	}
+	
+	public void updateRoundInit(int delta)
+	{
+		this.consumptionRequests = new HashMap<Set<Building>,ConsumptionRequests>();
+		List<Set<Building>> subnets = this.ci.connectedSets();
+		Iterator<Set<Building>> it = subnets.iterator();
+		while(it.hasNext())
+		{
+			Set<Building> subnet = it.next();
+			this.consumptionRequests.put(subnet, new ConsumptionRequests(subnet));
+		}
+	}
+	
+	/**
+	 * Adds a request to the shared consumption queue, so the network can share a resource out among the buildings requesting it.
+	 * Not currently very smart; draws and hands out by ratios of amounts supplied / requested, so will e.g. underpower everything
+	 * by a little bit rather than powering everything it can fully and leaving everything else high and dry.
+	 * 
+	 * Eventually we want to change this to add a variety of other distribution algorithms based on a particular resource's behaviour.
+	 * @param resName
+	 * @param amount
+	 * @param requestor
+	 */
+	public void requestSharedPoolConsumption(String resName, BigInteger amount, Building requestor)
+	{
+		Iterator<Set<Building>> it = this.consumptionRequests.keySet().iterator();
+		while(it.hasNext())
+		{
+			Set<Building> subnet = it.next();
+			if(subnet.contains(requestor))
+			{
+				//we're in this subnet - add our request to its appropriate pool
+				ConsumptionRequests crs = this.consumptionRequests.get(subnet);
+				ConsumptionRequest cr = new ConsumptionRequest(resName,amount,requestor,subnet);
+				crs.addRequest(cr);
+			}
+		}
+	}
+	
+	public void updateDoSharedPools()
+	{
+		Iterator<Set<Building>> it = this.consumptionRequests.keySet().iterator();
+		while(it.hasNext())
+		{
+			Set<Building> subnet = it.next();
+			ConsumptionRequests requests = this.consumptionRequests.get(subnet);
+			//if we don't have any requests in this subnet, just skip it
+			if(!requests.resourcesHaveBeenRequested())
+				continue;
+			
+			System.out.println("Resources requested for subnet: "+subnet.toString());
+		}
 	}
 }

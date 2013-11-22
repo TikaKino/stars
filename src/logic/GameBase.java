@@ -79,8 +79,8 @@ public class GameBase extends BasicGame implements InputProviderListener {
 	@Override
 	public void update(GameContainer gc, int i) throws SlickException {
 		
-		//Handle addition of buildings
-		
+		//Setup
+		this.network.updateRoundInit(i);
 		
 		//Update current resource status
 		Iterator<Building> it = this.network.getBuildingsIterator();
@@ -89,9 +89,13 @@ public class GameBase extends BasicGame implements InputProviderListener {
 		it = this.network.getBuildingsIterator();
 		while(it.hasNext())
 			it.next().consume(i);
+		//Shared consumption handled by the network as a whole
+		this.network.updateDoSharedPools();
+		
 		it = this.network.getBuildingsIterator();
 		while(it.hasNext())
 			it.next().store();
+		
 	}
 
 	@Override

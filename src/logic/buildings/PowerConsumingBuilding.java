@@ -25,11 +25,11 @@ public class PowerConsumingBuilding extends Building {
 		BigInteger toConsume = this.powerPerTick.multiply(BigInteger.valueOf(delta));
 		BigInteger consumed = BigInteger.ZERO;
 		
-		consumed = this.network.consumeFromNetwork(toConsume, "power_pool", this);
+		consumed = this.network.consumeFromNetwork("power_pool",toConsume,this);
 		toConsume = toConsume.subtract(consumed);
 		if(toConsume.compareTo(BigInteger.ZERO) > 0)
 		{
-			consumed = this.network.consumeFromNetwork(toConsume, "power_store", this);
+			consumed = this.network.consumeFromNetwork("power_store",toConsume,this);
 			toConsume = toConsume.subtract(consumed);
 		}
 		

@@ -3,6 +3,7 @@ package logic.buildings;
 import java.math.BigInteger;
 import java.util.HashMap;
 
+import logic.ConsumptionRequest;
 import logic.Network;
 
 import org.newdawn.slick.GameContainer;
@@ -120,6 +121,16 @@ public abstract class Building {
 	 * @param delta	Ticks (milliseconds) since last consumption
 	 */
 	public void consume(int delta)
+	{
+		
+	}
+	
+	/**
+	 * Callback: Lets the building know the result of a shared consumption attempt
+	 * @param amount	The amount successfully consumed
+	 * @param request	The request object giving information about the amount and type requested
+	 */
+	public void sharedConsume(BigInteger amount,ConsumptionRequest request)
 	{
 		
 	}

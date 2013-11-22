@@ -36,7 +36,7 @@ public class LivingQuarters extends PowerConsumingBuilding {
 		
 		//Attempt to consume life support from the network.
 		BigInteger requiredSupport = BigInteger.valueOf(this.population).multiply(BigInteger.valueOf(this.supportPerPop));
-		BigInteger consumedSupport = this.network.consumeFromNetwork(requiredSupport, "life_support", this);
+		BigInteger consumedSupport = this.network.consumeFromNetwork("life_support",requiredSupport,this);
 		requiredSupport = requiredSupport.subtract(consumedSupport);
 		
 		if(requiredSupport.compareTo(BigInteger.ZERO) > 0)
