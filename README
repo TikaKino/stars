@@ -1,1 +1,5 @@
 This experimental project creates a small colony-building game.
+
+Expects two user libraries to be defined:
+slick2d - providing at a minimum slick.jar,jinput.jar,lwjgl.jar and lwjgl_util.jar from the Slick2D library and links to their natives
+JGraphT - providing at a minimum jgrapht-jdk1.6.jar or equivalent (other versions may or may not work)
