@@ -84,12 +84,10 @@ public class LivingQuarters extends PowerConsumingBuilding {
 		int y = this.posY*10;
 		
 		//population 
-		g.drawString("P:"+this.population, x+5, y+25);
+		g.drawString("P:"+this.population, x+5, y+40);
 		
 		//power and support flags
 		if(!this.supported)
-			g.drawString("!Supp", x+5, y+40);
-		if(!this.powered)
-			g.drawString("!Pow", x+5, y+55);
+			g.drawString("!Supp", x+5, y+55);
 	}
 }

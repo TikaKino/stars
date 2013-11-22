@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 import logic.buildings.Building;
 import logic.buildings.LifeSupport;
 import logic.buildings.LivingQuarters;
+import logic.buildings.Mine;
 import logic.buildings.PowerPlant;
 
 import org.newdawn.slick.AppGameContainer;
@@ -63,16 +64,14 @@ public class GameBase extends BasicGame implements InputProviderListener {
 		
 		c = new BasicCommand("build_power_plant");
 		this.inputProvider.bindCommand(new KeyControl(Input.KEY_P), c);
-		
 		c = new BasicCommand("build_life_support");
 		this.inputProvider.bindCommand(new KeyControl(Input.KEY_L), c);
-		
 		c = new BasicCommand("build_living_quarters");
 		this.inputProvider.bindCommand(new KeyControl(Input.KEY_Q), c);
-		
+		c = new BasicCommand("build_mine");
+		this.inputProvider.bindCommand(new KeyControl(Input.KEY_M), c);
 		c = new BasicCommand("cancel");
 		this.inputProvider.bindCommand(new KeyControl(Input.KEY_ESCAPE), c);
-		
 		c = new BasicCommand("click");
 		this.inputProvider.bindCommand(new MouseButtonControl(0), c);
 	}
@@ -152,6 +151,13 @@ public class GameBase extends BasicGame implements InputProviderListener {
 		{
 			this.input_state = INPUT_STATE_BUILD;
 			this.preparedBuilding = new LivingQuarters("LQ"+this.buildingNumber);
+			this.buildingNumber++;
+			return;
+		}
+		else if(command.toString().equals("[Command=build_mine]"))
+		{
+			this.input_state = INPUT_STATE_BUILD;
+			this.preparedBuilding = new Mine("M"+this.buildingNumber);
 			this.buildingNumber++;
 			return;
 		}

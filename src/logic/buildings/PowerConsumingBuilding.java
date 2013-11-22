@@ -2,6 +2,9 @@ package logic.buildings;
 
 import java.math.BigInteger;
 
+import org.newdawn.slick.GameContainer;
+import org.newdawn.slick.Graphics;
+
 public class PowerConsumingBuilding extends Building {
 
 	protected boolean drainingPower = true;
@@ -36,4 +39,13 @@ public class PowerConsumingBuilding extends Building {
 			this.powered = true;
 	}
 	
+	public void render(GameContainer gc, Graphics g)
+	{
+		super.render(gc,g);
+		int x = this.posX*10;
+		int y = this.posY*10;
+		
+		if(!this.powered)
+			g.drawString("!Pow", x+5, y+25);
+	}
 }
