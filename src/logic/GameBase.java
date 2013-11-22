@@ -27,6 +27,7 @@ public class GameBase extends BasicGame implements InputProviderListener {
 
 	protected Network network;
 	protected InputProvider inputProvider;
+	protected Input input;
 	
 	protected int input_state;
 	protected Building preparedBuilding;
@@ -48,13 +49,14 @@ public class GameBase extends BasicGame implements InputProviderListener {
 		this.preparedBuilding = null;
 		this.buildingNumber = 1;
 		
+		this.network.addBuilding(new LivingQuarters("LQ1"), 0, 18);
 		this.network.addBuilding(new PowerPlant("Plant"),0,3);
 		this.network.addBuilding(new LifeSupport("LS1"), 0, 13);
 		this.network.addBuilding(new LifeSupport("LS2"), 5, 13);
-		this.network.addBuilding(new LivingQuarters("LQ1"), 0, 18);
 		
 		this.input_state = INPUT_STATE_BASIC;
-		this.inputProvider = new InputProvider(gc.getInput());
+		this.input = gc.getInput();
+		this.inputProvider = new InputProvider(this.input);
 		this.inputProvider.addListener(this);
 		Command c = null;
 		
@@ -155,6 +157,22 @@ public class GameBase extends BasicGame implements InputProviderListener {
 		else if(command.toString().equals("[Command=click]"))
 		{
 			//Do click event stuff
+			//System.out.println("("+this.input.getMouseX()+","+this.input.getMouseY()+")");
+			
+			if(this.input_state == INPUT_STATE_BUILD)
+			{
+				int x = this.input.getMouseX() / 10;
+				int y = this.input.getMouseY() / 10;
+				if(this.network.addBuilding(this.preparedBuilding, x, y))
+				{
+					this.input_state = INPUT_STATE_BASIC;
+					this.preparedBuilding = null;
+				}
+				else
+				{
+					
+				}
+			}
 		}
 	}
 

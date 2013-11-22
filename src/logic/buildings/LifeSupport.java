@@ -14,7 +14,7 @@ public class LifeSupport extends PowerConsumingBuilding {
 		super(name,"life_support",5,5,new BigInteger("10"));
 		
 		this.registerResource("life_support");
-		this.supportCapacity = 500;
+		this.supportCapacity = 50;
 		this.powered = true;
 	}
 	
